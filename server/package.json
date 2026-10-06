@@ -1,0 +1,1 @@
+{"name":"student-management-system-server","version":"1.0.0","private":true,"type":"module","scripts":{"dev":"node --watch server.js","start":"node server.js","test":"vitest run"},"dependencies":{"bcryptjs":"^3.0.2","cors":"^2.8.5","dotenv":"^17.2.3","express":"^5.1.0","jsonwebtoken":"^9.0.2"},"devDependencies":{"supertest":"^7.1.4","vitest":"^3.2.4"}}
