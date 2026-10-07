@@ -1,1 +1,27 @@
-import{describe,expect,it}from'vitest';import{validateStudent,validateRegistration}from'../utils/validation';describe('validation helpers',()=>{it('rejects an incomplete student form',()=>{const e=validateStudent({name:'',email:'bad',courseId:'',status:'',score:120});expect(e.name).toBeTruthy();expect(e.email).toBeTruthy();expect(e.courseId).toBeTruthy();expect(e.score).toBeTruthy()});it('accepts valid registration',()=>{expect(validateRegistration({name:'Ada Lovelace',email:'ada@example.com',password:'password123',confirmPassword:'password123'})).toEqual({})})});
+import { describe, expect, it } from "vitest";
+import { validateStudent, validateRegistration } from "../utils/validation";
+describe("validation helpers", () => {
+  it("rejects an incomplete student form", () => {
+    const e = validateStudent({
+      name: "",
+      email: "bad",
+      courseId: "",
+      status: "",
+      score: 120,
+    });
+    expect(e.name).toBeTruthy();
+    expect(e.email).toBeTruthy();
+    expect(e.courseId).toBeTruthy();
+    expect(e.score).toBeTruthy();
+  });
+  it("accepts valid registration", () => {
+    expect(
+      validateRegistration({
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        password: "password123",
+        confirmPassword: "password123",
+      }),
+    ).toEqual({});
+  });
+});

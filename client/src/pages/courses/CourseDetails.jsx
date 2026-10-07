@@ -1,1 +1,59 @@
-import{useEffect,useState}from'react';import{Link,useParams}from'react-router-dom';import Loader from'../../components/Loader';import ErrorState from'../../components/ErrorState';import{courseService}from'../../services/courseService';import{getErrorMessage}from'../../utils/errors';export default function CourseDetails(){const{id}=useParams();const[course,setCourse]=useState(null),[loading,setLoading]=useState(true),[error,setError]=useState('');const load=async()=>{setLoading(true);setError('');try{setCourse(await courseService.getById(id))}catch(e){setError(getErrorMessage(e,'Course not found.'))}finally{setLoading(false)}};useEffect(()=>{load()},[id]);if(loading)return <Loader label="Loading course..."/>;if(error)return <ErrorState message={error} onRetry={load}/>;return <div className="page-stack"><Link className="back-link" to="/courses">← Back to courses</Link><section className="course-detail panel"><div className="course-code large">{course.code}</div><span className="kicker">Course details</span><h2>{course.name}</h2><p className="lead">{course.description}</p><div className="detail-stats"><div><strong>{course.studentCount}</strong><span>Assigned students</span></div><div><strong>{new Date(course.createdAt).toLocaleDateString()}</strong><span>Created</span></div></div><div className="form-actions"><Link className="button button-secondary" to={`/courses/${id}/edit`}>Edit course</Link><Link className="button button-primary" to="/students">View students</Link></div></section></div>}
+import { useEffect, useState } from "react";
+import { Link, useParams } from "react-router-dom";
+import Loader from "../../components/Loader";
+import ErrorState from "../../components/ErrorState";
+import { courseService } from "../../services/courseService";
+import { getErrorMessage } from "../../utils/errors";
+export default function CourseDetails() {
+  const { id } = useParams();
+  const [course, setCourse] = useState(null),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState("");
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setCourse(await courseService.getById(id));
+    } catch (e) {
+      setError(getErrorMessage(e, "Course not found."));
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, [id]);
+  if (loading) return <Loader label="Loading course..." />;
+  if (error) return <ErrorState message={error} onRetry={load} />;
+  return (
+    <div className="page-stack">
+      <Link className="back-link" to="/courses">
+        ← Back to courses
+      </Link>
+      <section className="course-detail panel">
+        <div className="course-code large">{course.code}</div>
+        <span className="kicker">Course details</span>
+        <h2>{course.name}</h2>
+        <p className="lead">{course.description}</p>
+        <div className="detail-stats">
+          <div>
+            <strong>{course.studentCount}</strong>
+            <span>Assigned students</span>
+          </div>
+          <div>
+            <strong>{new Date(course.createdAt).toLocaleDateString()}</strong>
+            <span>Created</span>
+          </div>
+        </div>
+        <div className="form-actions">
+          <Link className="button button-secondary" to={`/courses/${id}/edit`}>
+            Edit course
+          </Link>
+          <Link className="button button-primary" to="/students">
+            View students
+          </Link>
+        </div>
+      </section>
+    </div>
+  );
+}

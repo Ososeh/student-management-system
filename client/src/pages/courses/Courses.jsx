@@ -1,1 +1,95 @@
-import{useEffect,useState}from'react';import{Link}from'react-router-dom';import Loader from'../../components/Loader';import ErrorState from'../../components/ErrorState';import EmptyState from'../../components/EmptyState';import ConfirmModal from'../../components/ConfirmModal';import{courseService}from'../../services/courseService';import{getErrorMessage}from'../../utils/errors';export default function Courses(){const[courses,setCourses]=useState([]),[loading,setLoading]=useState(true),[error,setError]=useState(''),[deleteId,setDeleteId]=useState(null),[deleting,setDeleting]=useState(false);const load=async()=>{setLoading(true);setError('');try{setCourses(await courseService.getAll())}catch(e){setError(getErrorMessage(e))}finally{setLoading(false)}};useEffect(()=>{load()},[]);const remove=async()=>{setDeleting(true);try{await courseService.remove(deleteId);setCourses(x=>x.filter(c=>c.id!==deleteId));setDeleteId(null)}catch(e){setError(getErrorMessage(e))}finally{setDeleting(false)}};if(loading)return <Loader label="Loading courses..."/>;if(error)return <ErrorState message={error} onRetry={load}/>;return <div className="page-stack"><section className="page-intro"><div><span className="kicker">Curriculum</span><h2>Courses</h2><p>Create and maintain the courses available to students.</p></div><Link className="button button-primary" to="/courses/new">+ Create course</Link></section><section className="course-grid">{courses.length===0?<EmptyState title="No courses yet" message="Create your first course to start assigning students." action={<Link className="button button-secondary" to="/courses/new">Create course</Link>}/>:courses.map(c=><article className="course-card panel" key={c.id}><div className="course-code">{c.code}</div><h3>{c.name}</h3><p>{c.description}</p><div className="course-footer"><span>{c.studentCount} students</span><div><Link to={`/courses/${c.id}`}>View</Link><Link to={`/courses/${c.id}/edit`}>Edit</Link><button onClick={()=>setDeleteId(c.id)}>Delete</button></div></div></article>)}</section>{deleteId&&<ConfirmModal title="Delete course?" message="A course with assigned students cannot be deleted until those students are reassigned." onCancel={()=>setDeleteId(null)} onConfirm={remove} busy={deleting}/>}</div>}
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import Loader from "../../components/Loader";
+import ErrorState from "../../components/ErrorState";
+import EmptyState from "../../components/EmptyState";
+import ConfirmModal from "../../components/ConfirmModal";
+import { courseService } from "../../services/courseService";
+import { getErrorMessage } from "../../utils/errors";
+export default function Courses() {
+  const [courses, setCourses] = useState([]),
+    [loading, setLoading] = useState(true),
+    [error, setError] = useState(""),
+    [deleteId, setDeleteId] = useState(null),
+    [deleting, setDeleting] = useState(false);
+  const load = async () => {
+    setLoading(true);
+    setError("");
+    try {
+      setCourses(await courseService.getAll());
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setLoading(false);
+    }
+  };
+  useEffect(() => {
+    load();
+  }, []);
+  const remove = async () => {
+    setDeleting(true);
+    try {
+      await courseService.remove(deleteId);
+      setCourses((x) => x.filter((c) => c.id !== deleteId));
+      setDeleteId(null);
+    } catch (e) {
+      setError(getErrorMessage(e));
+    } finally {
+      setDeleting(false);
+    }
+  };
+  if (loading) return <Loader label="Loading courses..." />;
+  if (error) return <ErrorState message={error} onRetry={load} />;
+  return (
+    <div className="page-stack">
+      <section className="page-intro">
+        <div>
+          <span className="kicker">Curriculum</span>
+          <h2>Courses</h2>
+          <p>Create and maintain the courses available to students.</p>
+        </div>
+        <Link className="button button-primary" to="/courses/new">
+          + Create course
+        </Link>
+      </section>
+      <section className="course-grid">
+        {courses.length === 0 ? (
+          <EmptyState
+            title="No courses yet"
+            message="Create your first course to start assigning students."
+            action={
+              <Link className="button button-secondary" to="/courses/new">
+                Create course
+              </Link>
+            }
+          />
+        ) : (
+          courses.map((c) => (
+            <article className="course-card panel" key={c.id}>
+              <div className="course-code">{c.code}</div>
+              <h3>{c.name}</h3>
+              <p>{c.description}</p>
+              <div className="course-footer">
+                <span>{c.studentCount} students</span>
+                <div>
+                  <Link to={`/courses/${c.id}`}>View</Link>
+                  <Link to={`/courses/${c.id}/edit`}>Edit</Link>
+                  <button onClick={() => setDeleteId(c.id)}>Delete</button>
+                </div>
+              </div>
+            </article>
+          ))
+        )}
+      </section>
+      {deleteId && (
+        <ConfirmModal
+          title="Delete course?"
+          message="A course with assigned students cannot be deleted until those students are reassigned."
+          onCancel={() => setDeleteId(null)}
+          onConfirm={remove}
+          busy={deleting}
+        />
+      )}
+    </div>
+  );
+}
