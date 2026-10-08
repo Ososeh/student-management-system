@@ -93,7 +93,7 @@ export default function Dashboard() {
                 <strong>{s.name}</strong>
                 <small>{s.email}</small>
               </span>
-              <span className="status-badge">{s.status}</span>
+              <span className={`status-badge ${s.status === "Inactive" ? "inactive" : "active"}`}>{s.status}</span>
             </Link>
           ))}
         </div>

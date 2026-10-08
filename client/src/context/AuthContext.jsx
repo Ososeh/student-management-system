@@ -22,7 +22,7 @@ export function AuthProvider({ children }) {
       setUser(u);
       authService.storeUser(u);
     } catch (error) {
-      console.error("Session validation failed:", error);
+      console.error("Session validation failed.");
       authService.logout();
       setUser(null);
     } finally {
@@ -44,6 +44,7 @@ export function AuthProvider({ children }) {
   }, []);
   const logout = useCallback(() => {
     authService.logout();
+    console.log("Logout successful.");
     setUser(null);
   }, []);
   const value = useMemo(

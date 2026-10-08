@@ -22,10 +22,13 @@ export default function Login() {
     if (Object.keys(n).length) return;
     setBusy(true);
     setServerError("");
+    console.log("Login attempt started.");
     try {
       await login(values);
+      console.log("User login successful.");
       navigate(location.state?.from || "/dashboard", { replace: true });
     } catch (err) {
+      console.log("Login failed.");
       setServerError(
         getErrorMessage(err, "Login failed. Check your details and try again."),
       );

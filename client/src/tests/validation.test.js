@@ -1,6 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { validateStudent, validateRegistration } from "../utils/validation";
+import { getScoreIndicatorClass } from "../pages/students/Students";
 describe("validation helpers", () => {
+  it("maps score ranges to the correct indicator class", () => {
+    expect(getScoreIndicatorClass(0)).toBe("score-indicator score-low");
+    expect(getScoreIndicatorClass(39)).toBe("score-indicator score-low");
+    expect(getScoreIndicatorClass(40)).toBe("score-indicator score-medium");
+    expect(getScoreIndicatorClass(79)).toBe("score-indicator score-medium");
+    expect(getScoreIndicatorClass(80)).toBe("score-indicator score-high");
+    expect(getScoreIndicatorClass(100)).toBe("score-indicator score-high");
+  });
   it("rejects an incomplete student form", () => {
     const e = validateStudent({
       name: "",

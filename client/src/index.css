@@ -340,6 +340,18 @@ a {
     font-size: 13px
 }
 
+.action-links .action-view {
+    color: #3857e8
+}
+
+.action-links .action-edit {
+    color: #b26a00
+}
+
+.action-links .action-delete {
+    color: var(--danger)
+}
+
 .record-row {
     display: flex;
     align-items: center;
@@ -368,15 +380,20 @@ a {
     display: inline-flex;
     padding: 5px 9px;
     border-radius: 999px;
-    background: #e8f6ee;
-    color: var(--success);
+    background: #dcf8e9;
+    color: #167a49;
     font-size: 11px;
     font-weight: 800
 }
 
+.status-badge.active {
+    background: #dcf8e9;
+    color: #167a49
+}
+
 .status-badge.inactive {
-    background: #f2f4f7;
-    color: #667085
+    background: #fff0eb;
+    color: #c2410c
 }
 
 .quick-panel {
@@ -479,6 +496,32 @@ th {
     font-size: 13px;
     padding: 0;
     cursor: pointer
+}
+
+.score-value {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px
+}
+
+.score-indicator {
+    width: 9px;
+    height: 9px;
+    flex: 0 0 9px;
+    border-radius: 2px;
+    display: inline-block
+}
+
+.score-low {
+    background: #e53935
+}
+
+.score-medium {
+    background: #b9dcf5
+}
+
+.score-high {
+    background: #22c55e
 }
 
 .state-card {

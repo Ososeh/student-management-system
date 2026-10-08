@@ -11,6 +11,7 @@ api.interceptors.request.use((config) => {
 api.interceptors.response.use(
   (r) => r,
   (error) => {
+    console.error("API request failed.");
     if (error.response?.status === 401) {
       localStorage.removeItem("sms_token");
       localStorage.removeItem("sms_user");
