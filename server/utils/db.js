@@ -1,1 +1,64 @@
-import fs from'node:fs/promises';import path from'node:path';import{fileURLToPath}from'node:url';const dbPath=path.join(path.dirname(fileURLToPath(import.meta.url)),'../data/db.json');const seed={users:[],courses:[{id:'course-web',name:'Web Development',code:'CSE401',description:'Modern web development with React, APIs, and responsive interfaces.',createdAt:'2026-01-10T10:00:00.000Z'},{id:'course-data',name:'Data Structures',code:'CSE302',description:'Core data structures, algorithms, and problem-solving techniques.',createdAt:'2026-01-11T10:00:00.000Z'},{id:'course-net',name:'Computer Networks',code:'CPE304',description:'Networking fundamentals, protocols, addressing, and infrastructure.',createdAt:'2026-01-12T10:00:00.000Z'}],students:[{id:'student-1',name:'Ada Johnson',email:'ada.johnson@example.com',courseId:'course-web',status:'Active',score:91,createdAt:'2026-02-02T10:00:00.000Z'},{id:'student-2',name:'David Okafor',email:'david.okafor@example.com',courseId:'course-data',status:'Active',score:84,createdAt:'2026-02-05T10:00:00.000Z'},{id:'student-3',name:'Maya Bello',email:'maya.bello@example.com',courseId:'course-net',status:'Inactive',score:76,createdAt:'2026-02-08T10:00:00.000Z'}]};let queue=Promise.resolve();export async function readDb(){try{return JSON.parse(await fs.readFile(dbPath,'utf8'))}catch(e){if(e.code!=='ENOENT')throw e;await writeDb(seed);return structuredClone(seed)}}export function writeDb(db){queue=queue.then(async()=>{await fs.mkdir(path.dirname(dbPath),{recursive:true});await fs.writeFile(dbPath,JSON.stringify(db,null,2))});return queue}export{dbPath};
+// Keep persistent records in a small JSON database for this capstone. The
+// production path is relative to this module; tests may point at a temporary
+// file so they never erase a developer's real local records.
+import fs from "node:fs/promises";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
+
+const defaultDbPath = path.join(
+  path.dirname(fileURLToPath(import.meta.url)),
+  "../data/db.json",
+);
+export const dbPath = process.env.SMS_DB_PATH
+  ? path.resolve(process.env.SMS_DB_PATH)
+  : defaultDbPath;
+
+// New accounts receive empty private workspaces. Existing legacy records
+// without an owner are intentionally retained in the file but are not shown
+// to any account, because their original owner cannot be identified safely.
+const seed = { users: [], courses: [], students: [], progress: {} };
+let writeQueue = Promise.resolve();
+let updateQueue = Promise.resolve();
+
+export async function readDb() {
+  try {
+    const db = JSON.parse(await fs.readFile(dbPath, "utf8"));
+    // Add the progress collection when reading a database from an older app
+    // version. Existing users and academic records remain untouched.
+    if (!db.progress) db.progress = {};
+    return db;
+  } catch (error) {
+    if (error.code !== "ENOENT") throw error;
+    await writeDb(seed);
+    return structuredClone(seed);
+  }
+}
+
+export function writeDb(db) {
+  // Serialize writes so overlapping requests do not overwrite each other's
+  // file writes. The queue is recovered after an I/O failure so later saves
+  // can still be attempted. Rename a fully written temporary file over the
+  // database so readers never see half of a JSON document.
+  const write = writeQueue.then(async () => {
+    await fs.mkdir(path.dirname(dbPath), { recursive: true });
+    const temporaryPath = `${dbPath}.${process.pid}.tmp`;
+    await fs.writeFile(temporaryPath, JSON.stringify(db, null, 2));
+    await fs.rename(temporaryPath, dbPath);
+  });
+  writeQueue = write.catch(() => {});
+  return write;
+}
+
+// Run a full read-change-write operation in sequence. Serializing the whole
+// transaction (not just the final file write) prevents simultaneous accounts
+// from overwriting one another's newly saved data.
+export function updateDb(change) {
+  const update = updateQueue.then(async () => {
+    const db = await readDb();
+    const result = await change(db);
+    await writeDb(db);
+    return result;
+  });
+  updateQueue = update.catch(() => {});
+  return update;
+}

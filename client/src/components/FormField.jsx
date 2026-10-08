@@ -1,3 +1,5 @@
+// Reusable field wrapper keeps label, required marker, and error rendering
+// consistent. The caller supplies an input/select/textarea as children.
 export default function FormField({
   label,
   name,

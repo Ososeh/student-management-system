@@ -1,12 +1,17 @@
+// Account creation: controlled inputs keep React state in sync with typing,
+// live password checks guide users, and success signs the new user in.
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { getErrorMessage } from "../utils/errors";
-import { validateRegistration } from "../utils/validation";
+import { passwordRequirements, validateRegistration } from "../utils/validation";
 import FormField from "../components/FormField";
 export default function Register() {
+  // The provider owns session state; the router handles successful navigation.
   const { register } = useAuth();
   const navigate = useNavigate();
+  // Controlled inputs keep the value used for validation and submission in
+  // sync with what the user sees in the form.
   const [values, setValues] = useState({
     name: "",
     email: "",
@@ -16,14 +21,20 @@ export default function Register() {
   const [errors, setErrors] = useState({});
   const [serverError, setServerError] = useState("");
   const [busy, setBusy] = useState(false);
+  const passwordChecks = Object.entries(passwordRequirements).map(
+    // Turn each named rule into a passed/missing display item for the checklist.
+    ([key, check]) => ({ key, passed: check(values.password) }),
+  );
   const submit = async (e) => {
     e.preventDefault();
     const n = validateRegistration(values);
+    // Stop here if the form is invalid; the server independently validates it.
     setErrors(n);
     if (Object.keys(n).length) return;
     setBusy(true);
     setServerError("");
     try {
+      // A successful registration also establishes a signed-in session.
       await register(values);
       navigate("/dashboard", { replace: true });
     } catch (err) {
@@ -45,6 +56,7 @@ export default function Register() {
         </div>
       )}
       <form onSubmit={submit} noValidate>
+        {/* Each reusable field receives its own error from validation state. */}
         <FormField label="Full name" name="name" error={errors.name} required>
           <input
             id="name"
@@ -82,6 +94,7 @@ export default function Register() {
                 setValues({ ...values, password: e.target.value })
               }
               autoComplete="new-password"
+              aria-describedby="password-requirements"
             />
           </FormField>
           <FormField
@@ -100,6 +113,25 @@ export default function Register() {
               autoComplete="new-password"
             />
           </FormField>
+        </div>
+        <div className="password-requirements" id="password-requirements" aria-live="polite">
+          <span className="password-requirements-title">Password must contain:</span>
+          <ul>
+            {passwordChecks.map(({ key, passed }) => {
+              const labels = {
+                minLength: "At least 8 characters",
+                uppercase: "One uppercase letter",
+                number: "One number",
+                special: "One special character",
+              };
+              return (
+                <li className={passed ? "requirement-met" : "requirement-missing"} key={key}>
+                  <span aria-hidden="true">{passed ? "✓" : "○"}</span>
+                  {labels[key]}
+                </li>
+              );
+            })}
+          </ul>
         </div>
         <button className="button button-primary button-full" disabled={busy}>
           {busy ? "Creating account..." : "Create account"}

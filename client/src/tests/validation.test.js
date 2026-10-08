@@ -1,3 +1,5 @@
+// Unit tests for reusable validation helpers and score-color boundaries. These
+// checks protect key form rules without needing to render the whole interface.
 import { describe, expect, it } from "vitest";
 import { validateStudent, validateRegistration } from "../utils/validation";
 import { getScoreIndicatorClass } from "../pages/students/Students";
@@ -23,13 +25,32 @@ describe("validation helpers", () => {
     expect(e.courseId).toBeTruthy();
     expect(e.score).toBeTruthy();
   });
-  it("accepts valid registration", () => {
+  it("rejects registration passwords that miss each required rule", () => {
+    const cases = [
+      "Ab1!xyz",
+      "ab1!xyza",
+      "Ab!xyzaa",
+      "Abcdefg1",
+    ];
+
+    cases.forEach((password) => {
+      const errors = validateRegistration({
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        password,
+        confirmPassword: password,
+      });
+      expect(errors.password).toBeTruthy();
+    });
+  });
+
+  it("accepts a registration password that meets all requirements", () => {
     expect(
       validateRegistration({
         name: "Ada Lovelace",
         email: "ada@example.com",
-        password: "password123",
-        confirmPassword: "password123",
+        password: "Password1!",
+        confirmPassword: "Password1!",
       }),
     ).toEqual({});
   });

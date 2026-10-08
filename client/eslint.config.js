@@ -1,3 +1,5 @@
+// ESLint checks JavaScript/JSX for common mistakes. Browser and Node globals
+// are both available because this project includes client and config files.
 import js from '@eslint/js';
 import globals from 'globals';
 import reactHooks from 'eslint-plugin-react-hooks';

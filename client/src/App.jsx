@@ -1,3 +1,5 @@
+// Central route map. Lazy loading keeps pages out of the initial download until
+// needed; Suspense displays Loader while a page's code is being fetched.
 import { Suspense, lazy } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -15,6 +17,8 @@ const CourseForm = lazy(() => import("./pages/courses/CourseForm"));
 const CourseDetails = lazy(() => import("./pages/courses/CourseDetails"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 export default function App() {
+  // Auth pages share one layout; protected data pages share the dashboard
+  // navigation and require an authenticated session.
   return (
     <Suspense fallback={<Loader fullScreen label="Loading page..." />}>
       <Routes>

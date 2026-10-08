@@ -1,3 +1,5 @@
+// Student-specific API adapter. Components use these named operations rather
+// than building URLs or interpreting Axios response wrappers themselves.
 import api from "./api";
 export const studentService = {
   async getAll(params = {}) {

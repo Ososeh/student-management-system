@@ -1,4 +1,15 @@
+// Shared front-end validation rules. Centralizing them keeps form behavior
+// consistent and makes the same rules easy to test without rendering a page.
 export const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+export const passwordRequirements = {
+  minLength: (password) => password.length >= 8,
+  uppercase: (password) => /[A-Z]/.test(password),
+  number: (password) => /[0-9]/.test(password),
+  special: (password) => /[^A-Za-z0-9]/.test(password),
+};
+export const isStrongPassword = (password) =>
+  // every() succeeds only when every individual password rule succeeds.
+  Object.values(passwordRequirements).every((check) => check(password));
 export function validateStudent(v) {
   const e = {};
   if (!v.name.trim()) e.name = "Student name is required.";
@@ -22,8 +33,8 @@ export function validateRegistration(v) {
   if (v.name.trim().length < 2) e.name = "Enter your full name.";
   if (!emailPattern.test(v.email.trim()))
     e.email = "Enter a valid email address.";
-  if (v.password.length < 8)
-    e.password = "Password must be at least 8 characters.";
+  if (!isStrongPassword(v.password))
+    e.password = "Password does not meet all requirements.";
   if (v.password !== v.confirmPassword)
     e.confirmPassword = "Passwords do not match.";
   return e;

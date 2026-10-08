@@ -1,3 +1,5 @@
+// Presentational dashboard tile: its parent supplies the value and labels, so
+// this component can be reused without knowing how data was loaded.
 export default function StatCard({ label, value, detail, icon }) {
   return (
     <article className="stat-card">

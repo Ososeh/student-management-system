@@ -1,3 +1,5 @@
+// Route guard: wait for session validation, allow signed-in users, or redirect
+// others to login. The requested URL is saved so login can return them there.
 import { useEffect } from "react";
 import { Navigate, Outlet, useLocation } from "react-router-dom";
 import Loader from "./Loader";
@@ -14,6 +16,7 @@ export default function ProtectedRoute() {
       );
     }
   }, [loading, isAuthenticated]);
+  // Never redirect while a stored token is still being verified.
   if (loading) return <Loader fullScreen label="Checking your session..." />;
   if (!isAuthenticated)
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;

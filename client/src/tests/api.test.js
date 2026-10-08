@@ -1,3 +1,5 @@
+// Service unit test: fake Axios so the test checks the student's API path and
+// response mapping without needing a running server or a network connection.
 import { describe, expect, it, vi } from "vitest";
 vi.mock("axios", () => {
   const client = {

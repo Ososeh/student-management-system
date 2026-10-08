@@ -1,3 +1,4 @@
+// Friendly fallback for browser URLs that do not match any route.
 import { Link } from "react-router-dom";
 export default function NotFound() {
   return (

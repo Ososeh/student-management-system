@@ -1,54 +1,111 @@
-import { useEffect, useState } from "react";
+// One course form handles both create and edit. The route id determines the
+// operation, while the account's saved draft restores unfinished form values.
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";
 import FormField from "../../components/FormField";
+import { useAuth } from "../../context/AuthContext";
 import { courseService } from "../../services/courseService";
 import { getErrorMessage } from "../../utils/errors";
 import { validateCourse } from "../../utils/validation";
+
 const initial = { name: "", code: "", description: "" };
+
 export default function CourseForm() {
-  const { id } = useParams(),
-    editing = Boolean(id),
-    navigate = useNavigate();
-  const [values, setValues] = useState(initial),
-    [errors, setErrors] = useState({}),
-    [serverError, setServerError] = useState(""),
-    [loading, setLoading] = useState(editing),
-    [busy, setBusy] = useState(false);
+  const { id } = useParams();
+  const editing = Boolean(id);
+  const navigate = useNavigate();
+  const { progress, saveProgress } = useAuth();
+  // Keep the draft loaded for this visit separate from later autosave updates.
+  const savedDraft = useRef(progress.courseFormDraft);
+  const [values, setValues] = useState(initial);
+  const [errors, setErrors] = useState({});
+  const [serverError, setServerError] = useState("");
+  const [loading, setLoading] = useState(editing);
+  const [draftReady, setDraftReady] = useState(!editing);
+  const [busy, setBusy] = useState(false);
+
   useEffect(() => {
     if (!editing) {
-      setLoading(false);
+      if (savedDraft.current?.recordId === null) {
+        setValues({ ...initial, ...savedDraft.current.values });
+      }
       return;
     }
+
+    let cancelled = false;
     (async () => {
       try {
-        const c = await courseService.getById(id);
-        setValues({ name: c.name, code: c.code, description: c.description });
-      } catch (e) {
-        setServerError(getErrorMessage(e));
+        const course = await courseService.getById(id);
+        if (cancelled) return;
+        const serverValues = {
+          name: course.name,
+          code: course.code,
+          description: course.description,
+        };
+        const draft = savedDraft.current;
+        setValues(
+          draft?.recordId === id
+            ? { ...serverValues, ...draft.values }
+            : serverValues,
+        );
+      } catch (error) {
+        setServerError(getErrorMessage(error));
+        if (savedDraft.current?.recordId === id) {
+          setValues({ ...initial, ...savedDraft.current.values });
+        }
       } finally {
-        setLoading(false);
+        if (!cancelled) {
+          setLoading(false);
+          setDraftReady(true);
+        }
       }
     })();
+    return () => {
+      cancelled = true;
+    };
   }, [editing, id]);
-  const submit = async (e) => {
-    e.preventDefault();
-    const n = validateCourse(values);
-    setErrors(n);
-    if (Object.keys(n).length) return;
+
+  useEffect(() => {
+    if (!draftReady) return undefined;
+    // Debounce autosaves so typing is responsive and does not create a request
+    // for every character. The server stores this draft under the account id.
+    const timer = setTimeout(() => {
+      saveProgress({
+        courseFormDraft: { recordId: editing ? id : null, values },
+      }).catch(() => {});
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [draftReady, editing, id, saveProgress, values]);
+
+  const submit = async (event) => {
+    event.preventDefault();
+    const validationErrors = validateCourse(values);
+    setErrors(validationErrors);
+    if (Object.keys(validationErrors).length) return;
     setBusy(true);
     setServerError("");
     try {
       if (editing) await courseService.update(id, values);
       else await courseService.create(values);
+      // The course itself is now durable; clear the redundant unfinished draft.
+      try {
+        await saveProgress({ courseFormDraft: null });
+      } catch {
+        // saveProgress displays persistence failures in the shared alert.
+      }
       navigate("/courses");
-    } catch (e) {
-      setServerError(getErrorMessage(e, "Could not save the course."));
+    } catch (error) {
+      setServerError(
+        getErrorMessage(error, "Could not save the course."),
+      );
     } finally {
       setBusy(false);
     }
   };
+
   if (loading) return <Loader label="Loading course..." />;
+
   return (
     <div className="form-page">
       <Link className="back-link" to="/courses">
@@ -56,9 +113,7 @@ export default function CourseForm() {
       </Link>
       <div className="page-intro">
         <div>
-          <span className="kicker">
-            {editing ? "Edit course" : "New course"}
-          </span>
+          <span className="kicker">{editing ? "Edit course" : "New course"}</span>
           <h2>{editing ? "Edit course" : "Create course"}</h2>
           <p>Keep course information clear and consistent.</p>
         </div>
@@ -79,7 +134,9 @@ export default function CourseForm() {
             <input
               id="name"
               value={values.name}
-              onChange={(e) => setValues({ ...values, name: e.target.value })}
+              onChange={(event) =>
+                setValues({ ...values, name: event.target.value })
+              }
             />
           </FormField>
           <FormField
@@ -91,8 +148,8 @@ export default function CourseForm() {
             <input
               id="code"
               value={values.code}
-              onChange={(e) =>
-                setValues({ ...values, code: e.target.value.toUpperCase() })
+              onChange={(event) =>
+                setValues({ ...values, code: event.target.value.toUpperCase() })
               }
             />
           </FormField>
@@ -107,8 +164,8 @@ export default function CourseForm() {
                 id="description"
                 rows="5"
                 value={values.description}
-                onChange={(e) =>
-                  setValues({ ...values, description: e.target.value })
+                onChange={(event) =>
+                  setValues({ ...values, description: event.target.value })
                 }
               />
             </FormField>

@@ -1,3 +1,5 @@
+// Shared confirmation prompt used before deletes. Keeping confirmation separate
+// from page logic gives student and course actions consistent safeguards.
 export default function ConfirmModal({
   title,
   message,

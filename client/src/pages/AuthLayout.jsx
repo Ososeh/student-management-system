@@ -1,3 +1,5 @@
+// Shared shell for public authentication screens. Outlet switches between
+// login/register, while an existing session is redirected into the workspace.
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import Loader from "../components/Loader";

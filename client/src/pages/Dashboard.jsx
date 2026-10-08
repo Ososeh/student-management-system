@@ -1,3 +1,5 @@
+// Dashboard coordinates student/course requests and turns their results into
+// summary counts, recent records, and quick links for common tasks.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import StatCard from "../components/StatCard";
@@ -8,11 +10,15 @@ import { courseService } from "../services/courseService";
 import { getErrorMessage } from "../utils/errors";
 import { useAuth } from "../context/AuthContext";
 export default function Dashboard() {
+  // Profile comes from the shared auth provider; the dashboard owns academic
+  // data and request status because those values are specific to this page.
   const { user } = useAuth();
   const [data, setData] = useState({ students: [], courses: [] });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const load = async () => {
+    // Request both collections together; Promise.all avoids waiting for one
+    // request to finish before starting the other.
     setLoading(true);
     setError("");
     try {
@@ -28,11 +34,16 @@ export default function Dashboard() {
     }
   };
   useEffect(() => {
+    // Load once on entry; the retry button can call the same function later.
     load();
   }, []);
   if (loading) return <Loader label="Loading dashboard..." />;
   if (error) return <ErrorState message={error} onRetry={load} />;
+  // These values are derived from the fetched records rather than stored as
+  // separate state, so they cannot drift out of sync with the source list.
   const active = data.students.filter((s) => s.status === "Active").length;
+  // reduce adds scores; dividing by record count gives the average. Empty data
+  // uses zero to avoid dividing by zero.
   const average = data.students.length
     ? Math.round(
         data.students.reduce((sum, s) => sum + Number(s.score || 0), 0) /

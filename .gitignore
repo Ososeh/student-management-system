@@ -1,3 +1,5 @@
+# Ignore installed packages and generated build output; they can be recreated
+# from package manifests and should not be committed as application source.
 node_modules/
 client/node_modules/
 server/node_modules/

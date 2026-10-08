@@ -1,3 +1,5 @@
+// Course detail screen loads one course by its route id and displays descriptive
+// information, assigned-student count, and links to edit or student records.
 import { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import Loader from "../../components/Loader";

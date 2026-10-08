@@ -1,3 +1,5 @@
+// Course-specific API adapter; keeping HTTP details here makes page components
+// easier to read and ensures every course operation uses the shared API client.
 import api from "./api";
 export const courseService = {
   async getAll() {

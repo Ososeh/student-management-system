@@ -1,3 +1,5 @@
+// Course collection page loads courses, displays an empty state when none
+// exist, and delegates confirmed deletion to the course service.
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import Loader from "../../components/Loader";
@@ -72,9 +74,18 @@ export default function Courses() {
               <div className="course-footer">
                 <span>{c.studentCount} students</span>
                 <div>
-                  <Link to={`/courses/${c.id}`}>View</Link>
-                  <Link to={`/courses/${c.id}/edit`}>Edit</Link>
-                  <button onClick={() => setDeleteId(c.id)}>Delete</button>
+                  <Link className="course-action-view" to={`/courses/${c.id}`}>
+                    View
+                  </Link>
+                  <Link className="course-action-edit" to={`/courses/${c.id}/edit`}>
+                    Edit
+                  </Link>
+                  <button
+                    className="course-action-delete"
+                    onClick={() => setDeleteId(c.id)}
+                  >
+                    Delete
+                  </button>
                 </div>
               </div>
             </article>

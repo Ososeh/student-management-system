@@ -1,3 +1,5 @@
+// Reusable progress indicator. The status role announces loading to assistive
+// technology; fullScreen chooses a page-wide rather than inline presentation.
 export default function Loader({ label = "Loading...", fullScreen = false }) {
   return (
     <div

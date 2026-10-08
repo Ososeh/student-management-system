@@ -1,1 +1,4 @@
+// Bearer-token gate for private API routes. It verifies the JWT, confirms its
+// user still exists in storage, attaches a safe profile to the request, then
+// calls next(); without a valid token the request ends with HTTP 401.
 import jwt from'jsonwebtoken';import{readDb}from'../utils/db.js';export async function requireAuth(req,res,next){const h=req.headers.authorization||'';const token=h.startsWith('Bearer ')?h.slice(7):null;if(!token)return res.status(401).json({message:'Authentication required.'});try{const p=jwt.verify(token,process.env.JWT_SECRET);const db=await readDb();const u=db.users.find(x=>x.id===p.sub);if(!u)return res.status(401).json({message:'Session is no longer valid.'});req.user={id:u.id,name:u.name,email:u.email};next()}catch{return res.status(401).json({message:'Invalid or expired token.'})}}

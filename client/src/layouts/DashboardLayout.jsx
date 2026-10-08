@@ -1,16 +1,20 @@
+// Common frame for signed-in pages: navigation, user identity, mobile menu,
+// and an Outlet that displays whichever protected page matches the URL.
 import { NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useState } from "react";
 import { useAuth } from "../context/AuthContext";
 const links = [
+  // Navigation is data-driven so each item uses the same rendering and style.
   { to: "/dashboard", label: "Dashboard", icon: "⌂" },
   { to: "/students", label: "Students", icon: "◉" },
   { to: "/courses", label: "Courses", icon: "▣" },
 ];
 export default function DashboardLayout() {
-  const { user, logout } = useAuth();
+  const { user, logout, progressError } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
   const handleLogout = () => {
+    // Remove the session before replacing the current history entry with login.
     logout();
     navigate("/login", { replace: true });
   };
@@ -81,6 +85,11 @@ export default function DashboardLayout() {
           </div>
         </header>
         <div className="page-content">
+          {progressError && (
+            <div className="alert alert-error" role="alert">
+              {progressError}
+            </div>
+          )}
           <Outlet />
         </div>
       </main>
