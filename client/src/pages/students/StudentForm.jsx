@@ -35,6 +35,8 @@ export default function StudentForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
+    // The course choices are required for the select menu. In edit mode, also
+    // fetch the saved student before deciding whether a matching draft overlays it.
     let cancelled = false;
     (async () => {
       try {
@@ -43,6 +45,7 @@ export default function StudentForm() {
         setCourses(availableCourses);
 
         if (editing) {
+          // A draft is applied only to the student id it was created for.
           const student = await studentService.getById(id);
           if (cancelled) return;
           const serverValues = {
@@ -62,6 +65,8 @@ export default function StudentForm() {
           setValues({ ...initial, ...savedDraft.current.values });
         }
       } catch (error) {
+        // Keep the form usable if saved data cannot be fetched but a matching
+        // account draft is already available in the restored progress object.
         setServerError(getErrorMessage(error));
         if (editing && savedDraft.current?.recordId === id) {
           setValues({ ...initial, ...savedDraft.current.values });
@@ -93,6 +98,7 @@ export default function StudentForm() {
   }, [draftReady, editing, id, saveProgress, values]);
 
   const submit = async (event) => {
+    // Native number inputs provide text; convert score to a number for the API.
     event.preventDefault();
     const validationErrors = validateStudent(values);
     setErrors(validationErrors);
@@ -141,12 +147,14 @@ export default function StudentForm() {
           </p>
         </div>
       </div>
+      {/* role=alert makes server feedback available to assistive technology. */}
       {serverError && (
         <div className="alert alert-error" role="alert">
           {serverError}
         </div>
       )}
       <form className="panel form-panel" onSubmit={submit} noValidate>
+        {/* Each FormField pairs an input with its label and validation error. */}
         <div className="form-grid">
           <FormField label="Full name" name="name" error={errors.name} required>
             <input
@@ -180,6 +188,7 @@ export default function StudentForm() {
                 setValues({ ...values, courseId: event.target.value })
               }
             >
+              {/* An empty option makes the user choose a valid course explicitly. */}
               <option value="">Select a course</option>
               {courses.map((course) => (
                 <option key={course.id} value={course.id}>

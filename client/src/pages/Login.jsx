@@ -29,6 +29,7 @@ export default function Login() {
     if (!values.password) n.password = "Password is required.";
     setErrors(n);
     if (Object.keys(n).length) return;
+    // Busy state prevents duplicate submissions and changes the button label.
     setBusy(true);
     setServerError("");
     console.log("Login attempt started.");
@@ -71,6 +72,8 @@ export default function Login() {
           error={errors.email}
           required
         >
+          {/* Password input masks typing and browser autocomplete identifies it
+              as an existing account password, not a new credential. */}
           <input
             id="email"
             type="email"

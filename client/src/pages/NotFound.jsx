@@ -1,6 +1,7 @@
 // Friendly fallback for browser URLs that do not match any route.
 import { Link } from "react-router-dom";
 export default function NotFound() {
+  // This page is selected by App's wildcard route when no path matches.
   return (
     <div className="not-found">
       <span className="kicker">404</span>

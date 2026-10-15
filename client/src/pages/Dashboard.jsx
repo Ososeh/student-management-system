@@ -63,6 +63,7 @@ export default function Dashboard() {
         </Link>
       </section>
       <section className="stats-grid">
+        {/* Each tile receives already-computed values and renders consistently. */}
         <StatCard
           label="Total students"
           value={data.students.length}
@@ -97,6 +98,7 @@ export default function Dashboard() {
             </div>
             <Link to="/students">View all</Link>
           </div>
+          {/* Limit the overview to five newest records; the full list is linked above. */}
           {data.students.slice(0, 5).map((s) => (
             <Link className="record-row" to={`/students/${s.id}`} key={s.id}>
               <span className="avatar">{s.name.charAt(0).toUpperCase()}</span>
@@ -109,6 +111,7 @@ export default function Dashboard() {
           ))}
         </div>
         <div className="panel quick-panel">
+          {/* These shortcuts make common create tasks available from the landing page. */}
           <span className="kicker">Quick actions</span>
           <h3>Keep your records moving</h3>
           <p>

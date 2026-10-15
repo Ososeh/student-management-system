@@ -8,6 +8,8 @@ export default function ConfirmModal({
   onCancel,
   busy = false,
 }) {
+  // Clicking outside the dialog cancels; clicks inside are stopped below so
+  // choosing a button does not also trigger the backdrop's cancel handler.
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onCancel}>
       <div
@@ -17,8 +19,10 @@ export default function ConfirmModal({
         aria-labelledby="modal-title"
         onMouseDown={(e) => e.stopPropagation()}
       >
+        {/* Dialog attributes name the popup for screen-reader users. */}
         <h2 id="modal-title">{title}</h2>
         <p>{message}</p>
+        {/* Disable both actions during a pending request to prevent duplicates. */}
         <div className="modal-actions">
           <button
             className="button button-secondary"

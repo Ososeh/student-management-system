@@ -4,5 +4,7 @@ export function getErrorMessage(
   error,
   fallback = "Something went wrong. Please try again.",
 ) {
+  // Axios puts server messages under response.data; ordinary JavaScript
+  // errors use message. Optional chaining safely handles missing properties.
   return error.response?.data?.message || error.message || fallback;
 }

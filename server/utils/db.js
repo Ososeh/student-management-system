@@ -22,6 +22,7 @@ let updateQueue = Promise.resolve();
 
 export async function readDb() {
   try {
+    // Parse a complete JSON document from persistent storage.
     const db = JSON.parse(await fs.readFile(dbPath, "utf8"));
     // Add the progress collection when reading a database from an older app
     // version. Existing users and academic records remain untouched.
@@ -40,9 +41,11 @@ export function writeDb(db) {
   // can still be attempted. Rename a fully written temporary file over the
   // database so readers never see half of a JSON document.
   const write = writeQueue.then(async () => {
+    // Ensure the data directory exists, including on a clean first launch.
     await fs.mkdir(path.dirname(dbPath), { recursive: true });
     const temporaryPath = `${dbPath}.${process.pid}.tmp`;
     await fs.writeFile(temporaryPath, JSON.stringify(db, null, 2));
+    // Rename on the same filesystem atomically replaces the old snapshot.
     await fs.rename(temporaryPath, dbPath);
   });
   writeQueue = write.catch(() => {});
@@ -53,6 +56,8 @@ export function writeDb(db) {
 // transaction (not just the final file write) prevents simultaneous accounts
 // from overwriting one another's newly saved data.
 export function updateDb(change) {
+  // Queue the full read/edit/write unit so concurrent API requests cannot
+  // start from the same old snapshot and overwrite each other's changes.
   const update = updateQueue.then(async () => {
     const db = await readDb();
     const result = await change(db);

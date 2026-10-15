@@ -9,12 +9,14 @@ import ConfirmModal from "../../components/ConfirmModal";
 import { courseService } from "../../services/courseService";
 import { getErrorMessage } from "../../utils/errors";
 export default function Courses() {
+  // Collection, loading/error state, and pending delete id drive this screen.
   const [courses, setCourses] = useState([]),
     [loading, setLoading] = useState(true),
     [error, setError] = useState(""),
     [deleteId, setDeleteId] = useState(null),
     [deleting, setDeleting] = useState(false);
   const load = async () => {
+    // Fetch the user's courses; the service unwraps the server response.
     setLoading(true);
     setError("");
     try {
@@ -26,9 +28,11 @@ export default function Courses() {
     }
   };
   useEffect(() => {
+    // Fetch the list once when this route mounts.
     load();
   }, []);
   const remove = async () => {
+    // Delete only after confirmation, then remove the item from the visible list.
     setDeleting(true);
     try {
       await courseService.remove(deleteId);
@@ -55,6 +59,7 @@ export default function Courses() {
         </Link>
       </section>
       <section className="course-grid">
+        {/* Empty and populated collections need different next-step interfaces. */}
         {courses.length === 0 ? (
           <EmptyState
             title="No courses yet"
@@ -92,6 +97,7 @@ export default function Courses() {
           ))
         )}
       </section>
+      {/* The dialog exists only while a course is awaiting confirmation. */}
       {deleteId && (
         <ConfirmModal
           title="Delete course?"

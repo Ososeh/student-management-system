@@ -17,6 +17,8 @@ const allowedPaths = [
 const studentDraftFields = ["name", "email", "courseId", "status", "score"];
 const courseDraftFields = ["name", "code", "description"];
 
+// Accept only draft fields that correspond to real form controls. This keeps
+// the progress store small and prevents clients from injecting arbitrary data.
 function cleanDraft(value, fields) {
   if (value === null) return null;
   if (!value || typeof value !== "object" || Array.isArray(value)) {
@@ -47,6 +49,7 @@ function cleanDraft(value, fields) {
 }
 
 function cleanChanges(body) {
+  // Build a fresh allow-listed object rather than saving the request body whole.
   const changes = {};
   if (Object.hasOwn(body, "lastPath")) {
     if (
@@ -77,11 +80,13 @@ function cleanChanges(body) {
 }
 
 router.get("/", async (req, res) => {
+  // Progress uses the authenticated id as its key; no user id comes from input.
   const db = await readDb();
   res.json({ progress: db.progress[req.user.id] || {} });
 });
 
 router.put("/", async (req, res) => {
+  // Reject arrays/primitives before checking each recognized progress field.
   if (!req.body || typeof req.body !== "object" || Array.isArray(req.body)) {
     return res.status(400).json({ message: "Progress must be a JSON object." });
   }
@@ -89,7 +94,9 @@ router.put("/", async (req, res) => {
   if (error) return res.status(400).json({ message: error });
 
   const saved = await updateDb((db) => {
+    // Merge updates to preserve fields not included in this request.
     const userProgress = { ...(db.progress[req.user.id] || {}), ...changes };
+    // A null draft means the form was completed/cancelled, so remove its key.
     for (const key of ["studentFormDraft", "courseFormDraft"]) {
       if (userProgress[key] === null) delete userProgress[key];
     }

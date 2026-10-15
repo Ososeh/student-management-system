@@ -7,6 +7,8 @@ import { readDb, updateDb } from "../utils/db.js";
 
 const router = Router();
 
+// Attach a course object for display, but only if it belongs to the same
+// account as the student. This prevents related-data leaks between users.
 function decorate(student, db) {
   const course = db.courses.find(
     (item) =>
@@ -15,6 +17,7 @@ function decorate(student, db) {
   return { ...student, course: course || null };
 }
 
+// Reject invalid values and cross-account course ids before writing a record.
 function validate(student, db, ownerId) {
   const errors = [];
   if (!student.name?.trim()) errors.push("Name is required.");
@@ -46,6 +49,7 @@ function validate(student, db, ownerId) {
 }
 
 router.get("/", async (req, res) => {
+  // Filter before searching so query results can never include another user.
   const db = await readDb();
   const query = (req.query.search || "").toLowerCase();
   let students = db.students
@@ -62,6 +66,7 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
+  // A private record is treated as not found for any non-owner.
   const db = await readDb();
   const student = db.students.find(
     (item) => item.id === req.params.id && item.ownerId === req.user.id,
@@ -71,12 +76,15 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  // Validate and insert atomically so ownership and course checks use the
+  // same current database state as the write.
   const result = await updateDb((db) => {
     const errors = validate(req.body, db, req.user.id);
     if (errors.length) {
       return { status: 400, body: { message: errors.join(" "), errors } };
     }
     const student = {
+      // Ownership always comes from the verified token-derived request user.
       id: randomUUID(),
       ownerId: req.user.id,
       name: req.body.name.trim(),
@@ -93,6 +101,7 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
+  // Confirm ownership before validating replacement values or changing data.
   const result = await updateDb((db) => {
     const index = db.students.findIndex(
       (item) => item.id === req.params.id && item.ownerId === req.user.id,
@@ -121,6 +130,7 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
+  // Remove only the matching owner's student row.
   const result = await updateDb((db) => {
     const index = db.students.findIndex(
       (item) => item.id === req.params.id && item.ownerId === req.user.id,

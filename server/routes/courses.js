@@ -7,6 +7,8 @@ import { readDb, updateDb } from "../utils/db.js";
 
 const router = Router();
 
+// Add a calculated count for display without storing a duplicate count that
+// could become stale when students are moved or deleted.
 function decorate(course, db) {
   return {
     ...course,
@@ -17,6 +19,7 @@ function decorate(course, db) {
   };
 }
 
+// Validate required course fields before any database change is made.
 function validate(course) {
   const errors = [];
   if (!course.name?.trim()) errors.push("Course name is required.");
@@ -26,6 +29,7 @@ function validate(course) {
 }
 
 router.get("/", async (req, res) => {
+  // Only return rows owned by the identity added by requireAuth middleware.
   const db = await readDb();
   const courses = db.courses
     .filter((course) => course.ownerId === req.user.id)
@@ -34,6 +38,8 @@ router.get("/", async (req, res) => {
 });
 
 router.get("/:id", async (req, res) => {
+  // Check both id and owner; another account's id is indistinguishable from
+  // an unknown id and therefore cannot be used to discover private records.
   const db = await readDb();
   const course = db.courses.find(
     (item) => item.id === req.params.id && item.ownerId === req.user.id,
@@ -43,6 +49,7 @@ router.get("/:id", async (req, res) => {
 });
 
 router.post("/", async (req, res) => {
+  // Run validation, uniqueness checks, and insertion in one serialized update.
   const result = await updateDb((db) => {
     const errors = validate(req.body);
     if (errors.length) {
@@ -59,6 +66,7 @@ router.post("/", async (req, res) => {
       };
     }
     const course = {
+      // The authenticated user id, not a client-supplied body field, owns this row.
       id: randomUUID(),
       ownerId: req.user.id,
       name: req.body.name.trim(),
@@ -73,6 +81,7 @@ router.post("/", async (req, res) => {
 });
 
 router.put("/:id", async (req, res) => {
+  // Locate and update only a course owned by the caller.
   const result = await updateDb((db) => {
     const index = db.courses.findIndex(
       (course) => course.id === req.params.id && course.ownerId === req.user.id,
@@ -112,6 +121,8 @@ router.put("/:id", async (req, res) => {
 });
 
 router.delete("/:id", async (req, res) => {
+  // Preserve the relationship: a course cannot be removed while this user's
+  // students still refer to it.
   const result = await updateDb((db) => {
     const index = db.courses.findIndex(
       (course) => course.id === req.params.id && course.ownerId === req.user.id,

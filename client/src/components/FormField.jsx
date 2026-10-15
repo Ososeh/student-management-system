@@ -7,13 +7,17 @@ export default function FormField({
   children,
   required = false,
 }) {
+  // A single wrapper ensures the text label and optional error stay associated
+  // with the input supplied by each form page.
   return (
     <div className="field">
       <label htmlFor={name}>
         {label}
+        {/* Add a visual required marker; browser/API validation remains separate. */}
         {required && " *"}
       </label>
       {children}
+      {/* Show field feedback only when validation supplied an error. */}
       {error && (
         <p className="field-error" id={`${name}-error`}>
           {error}

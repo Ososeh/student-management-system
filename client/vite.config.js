@@ -3,6 +3,8 @@
 import { defineConfig } from 'vitest/config';
 import react from '@vitejs/plugin-react';
 
+// The React plugin transforms JSX. `server.port` keeps the local client URL
+// predictable, and `test` configures Vitest's browser-like environment.
 export default defineConfig({
   plugins: [react()],
   server: { port: 5173 },

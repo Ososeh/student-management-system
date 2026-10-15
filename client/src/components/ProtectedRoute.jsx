@@ -5,6 +5,7 @@ import { Navigate, Outlet, useLocation } from "react-router-dom";
 import Loader from "./Loader";
 import { useAuth } from "../context/AuthContext";
 export default function ProtectedRoute() {
+  // Read the shared session state and current URL before choosing a branch.
   const { isAuthenticated, loading } = useAuth();
   const location = useLocation();
   useEffect(() => {
@@ -20,5 +21,6 @@ export default function ProtectedRoute() {
   if (loading) return <Loader fullScreen label="Checking your session..." />;
   if (!isAuthenticated)
     return <Navigate to="/login" replace state={{ from: location.pathname }} />;
+  // Outlet renders the matching child route only after authentication passes.
   return <Outlet />;
 }

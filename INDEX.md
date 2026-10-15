@@ -14,6 +14,7 @@
 | **[TESTING_GUIDE.md](./TESTING_GUIDE.md)** | Step-by-step manual verification (register, create, refresh, logout/login) |
 | **[PERSISTENCE_IMPLEMENTATION.md](./PERSISTENCE_IMPLEMENTATION.md)** | Technical deep dive — architecture, data model, security, troubleshooting |
 | **[docs/PROJECT_STUDY_GUIDE.md](./docs/PROJECT_STUDY_GUIDE.md)** | Comprehensive beginner-friendly project walkthrough |
+| **[docs/PROJECT_FILE_REFERENCE.md](./docs/PROJECT_FILE_REFERENCE.md)** | Purpose, dependencies, connections, and workflow for each source/test/config file; safe environment-variable explanations |
 | **[README.md](./README.md)** | Project setup and overview |
 
 ---
@@ -58,6 +59,7 @@ A user:
 - **4 automated tests** (all pass) — Server integration tests, temporary isolated database
 - **3 comprehensive guides** — Implementation summary, testing walkthrough, project study
 - **Beginner-friendly** — Explains what, why, and how for complete newcomers
+- **File-by-file guide** — See `docs/PROJECT_FILE_REFERENCE.md` for the specific role and workflow of each project file
 
 ---
 

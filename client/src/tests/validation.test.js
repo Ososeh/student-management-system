@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { validateStudent, validateRegistration } from "../utils/validation";
 import { getScoreIndicatorClass } from "../pages/students/Students";
 describe("validation helpers", () => {
+  // Check values at both sides of each boundary so off-by-one mistakes show up.
   it("maps score ranges to the correct indicator class", () => {
     expect(getScoreIndicatorClass(0)).toBe("score-indicator score-low");
     expect(getScoreIndicatorClass(39)).toBe("score-indicator score-low");
@@ -13,6 +14,7 @@ describe("validation helpers", () => {
     expect(getScoreIndicatorClass(100)).toBe("score-indicator score-high");
   });
   it("rejects an incomplete student form", () => {
+    // Invalid sample values should create a field-specific error for each issue.
     const e = validateStudent({
       name: "",
       email: "bad",
@@ -26,6 +28,7 @@ describe("validation helpers", () => {
     expect(e.score).toBeTruthy();
   });
   it("rejects registration passwords that miss each required rule", () => {
+    // Each password below intentionally violates a different requirement.
     const cases = [
       "Ab1!xyz",
       "ab1!xyza",
@@ -34,6 +37,7 @@ describe("validation helpers", () => {
     ];
 
     cases.forEach((password) => {
+      // A rejected password is reported on the password field itself.
       const errors = validateRegistration({
         name: "Ada Lovelace",
         email: "ada@example.com",
@@ -45,6 +49,7 @@ describe("validation helpers", () => {
   });
 
   it("accepts a registration password that meets all requirements", () => {
+    // A complete, matching registration must return no validation errors.
     expect(
       validateRegistration({
         name: "Ada Lovelace",

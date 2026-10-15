@@ -26,6 +26,7 @@ export default function Register() {
     ([key, check]) => ({ key, passed: check(values.password) }),
   );
   const submit = async (e) => {
+    // Prevent the browser's default page reload so React can validate/send.
     e.preventDefault();
     const n = validateRegistration(values);
     // Stop here if the form is invalid; the server independently validates it.
@@ -86,6 +87,8 @@ export default function Register() {
             error={errors.password}
             required
           >
+            {/* Browser autocomplete identifies this as a new credential and
+                the description points to the live requirements list below. */}
             <input
               id="password"
               type="password"
@@ -115,6 +118,8 @@ export default function Register() {
           </FormField>
         </div>
         <div className="password-requirements" id="password-requirements" aria-live="polite">
+          {/* Reuse the same requirement checks used by validation, so displayed
+              hints cannot disagree with whether the password will be accepted. */}
           <span className="password-requirements-title">Password must contain:</span>
           <ul>
             {passwordChecks.map(({ key, passed }) => {

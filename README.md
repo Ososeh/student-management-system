@@ -2,7 +2,7 @@
 
 A React capstone for managing a private student/course workspace. It provides account registration and sign-in, protected routes, student/course CRUD, search, resumable workspace state, validation, loading/empty/error states, responsive UI, automated tests, and a separate REST API.
 
-For a beginner-oriented walkthrough of the architecture, workflows, files, API, state, and troubleshooting, see the [Project Study Guide](./docs/PROJECT_STUDY_GUIDE.md) or its [PDF version](./docs/PROJECT_STUDY_GUIDE.pdf).
+For a beginner-oriented walkthrough of the architecture, workflows, files, API, state, and troubleshooting, see the [Project Study Guide](./docs/PROJECT_STUDY_GUIDE.md). The [File-by-File Learning Reference](./docs/PROJECT_FILE_REFERENCE.md) describes every client/server source file and explains environment variables without exposing local values.
 
 ## Stack
 - React + Vite

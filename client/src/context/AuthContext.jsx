@@ -22,9 +22,13 @@ export function AuthProvider({ children }) {
   const [progress, setProgress] = useState({});
   const [progressReady, setProgressReady] = useState(false);
   const [progressError, setProgressError] = useState("");
+  // A promise chain serializes saves; the ref survives renders without causing
+  // a rerender every time the queue advances.
   const progressQueue = useRef(Promise.resolve());
+  // Remember which account owns pending writes to block cross-account saves.
   const activeUserId = useRef(null);
   const refresh = useCallback(async () => {
+    // No token means no session needs restoring, so finish initialization now.
     const token = authService.getToken();
     if (!token) {
       setProgress({});
@@ -57,7 +61,7 @@ export function AuthProvider({ children }) {
     refresh();
   }, [refresh]);
   const login = useCallback(async (c) => {
-    // Persisted response is also copied into React state for immediate UI use.
+    // Establish the token first, then retrieve the workspace using that token.
     const r = await authService.login(c);
     let savedProgress;
     try {
@@ -78,6 +82,8 @@ export function AuthProvider({ children }) {
     return { ...r, progress: savedProgress };
   }, []);
   const register = useCallback(async (d) => {
+    // A newly registered account is signed in by the API and starts with its
+    // own progress document, so use the same fetch-and-restore sequence.
     const r = await authService.register(d);
     let savedProgress;
     try {
@@ -110,6 +116,7 @@ export function AuthProvider({ children }) {
         return Promise.reject(new Error("Sign in before saving workspace progress."));
       }
       const ownerId = user.id;
+      // Update the current interface immediately while persistence happens.
       setProgress((current) => ({ ...current, ...changes }));
       setProgressError("");
       // Serialize client updates and verify the account is unchanged before
@@ -136,6 +143,8 @@ export function AuthProvider({ children }) {
     [user],
   );
   const value = useMemo(
+    // Memoization preserves the context object's identity when none of its
+    // values change, preventing unnecessary updates in child components.
     () => ({
       user,
       loading,

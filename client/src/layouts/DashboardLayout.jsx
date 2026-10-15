@@ -10,6 +10,8 @@ const links = [
   { to: "/courses", label: "Courses", icon: "▣" },
 ];
 export default function DashboardLayout() {
+  // Keep only the menu's open/closed state local; identity and logout are
+  // shared account data managed by AuthContext.
   const { user, logout, progressError } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
   const navigate = useNavigate();
@@ -28,6 +30,7 @@ export default function DashboardLayout() {
           </span>
         </div>
         <nav className="side-nav" aria-label="Main navigation">
+          {/* Mapping the links avoids repeating the same navigation markup. */}
           {links.map((l) => (
             <NavLink
               key={l.to}
@@ -57,6 +60,7 @@ export default function DashboardLayout() {
           </button>
         </div>
       </aside>
+      {/* The dimmed overlay closes the mobile drawer when tapped. */}
       {mobileOpen && (
         <button
           className="mobile-overlay"
@@ -85,11 +89,14 @@ export default function DashboardLayout() {
           </div>
         </header>
         <div className="page-content">
+          {/* Progress errors are shared here so every page can report autosave
+              problems in one consistent, visible location. */}
           {progressError && (
             <div className="alert alert-error" role="alert">
               {progressError}
             </div>
           )}
+          {/* The current nested route is inserted inside the shared shell. */}
           <Outlet />
         </div>
       </main>

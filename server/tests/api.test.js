@@ -16,6 +16,8 @@ const { dbPath } = await import("../utils/db.js");
 
 const strongPassword = "Password123!";
 
+// Register through the public endpoint, assert the expected response, and
+// return the profile/token used by the rest of each integration scenario.
 async function register(name, email) {
   const response = await request(app)
     .post("/api/auth/register")
@@ -24,10 +26,12 @@ async function register(name, email) {
   return response.body;
 }
 
+// Format the standard header required by middleware-protected API routes.
 function authenticated(token) {
   return { Authorization: `Bearer ${token}` };
 }
 
+// Create a valid course through the API so tests use the same path as the UI.
 async function createCourse(token, code = "CSE401") {
   return request(app)
     .post("/api/courses")
@@ -41,6 +45,8 @@ async function createCourse(token, code = "CSE401") {
 
 describe("Student Management API", () => {
   beforeEach(async () => {
+    // Guard against accidentally targeting the real database, then start each
+    // scenario from a clean isolated file.
     expect(dbPath).toBe(
       path.resolve(os.tmpdir(), `student-management-api-${process.pid}.json`),
     );
@@ -52,6 +58,7 @@ describe("Student Management API", () => {
   });
 
   afterAll(async () => {
+    // Remove the temporary database after all scenarios have finished.
     expect(dbPath).toBe(
       path.resolve(os.tmpdir(), `student-management-api-${process.pid}.json`),
     );
@@ -63,12 +70,14 @@ describe("Student Management API", () => {
   });
 
   it("serves a health response", async () => {
+    // Health is public and confirms the Express app has mounted its status route.
     const response = await request(app).get("/api/health");
     expect(response.status).toBe(200);
     expect(response.body.status).toBe("ok");
   });
 
   it("registers a user with an empty private workspace and supports later login", async () => {
+    // Start by verifying account creation returns safe profile data and a token.
     const created = await register("Test User", "test@example.com");
     expect(created.user).toMatchObject({
       name: "Test User",
@@ -77,6 +86,7 @@ describe("Student Management API", () => {
     expect(created.user.passwordHash).toBeUndefined();
     expect(created.token).toEqual(expect.any(String));
 
+    // Private student routes must reject requests that have no bearer token.
     const noToken = await request(app).get("/api/students");
     expect(noToken.status).toBe(401);
     const initialStudents = await request(app)
@@ -146,6 +156,7 @@ describe("Student Management API", () => {
   });
 
   it("isolates academic records and progress between accounts", async () => {
+    // Create two independent identities and add private data to only the first.
     const first = await register("First User", "first@example.com");
     const second = await register("Second User", "second@example.com");
     const course = await createCourse(first.token, "FIRST101");
@@ -232,6 +243,7 @@ describe("Student Management API", () => {
   });
 
   it("validates progress updates and course deletion constraints", async () => {
+    // Invalid route paths are rejected before they can be saved as resume state.
     const account = await register("Course User", "course@example.com");
     expect(
       (
@@ -272,3 +284,9 @@ describe("Student Management API", () => {
     ).toBe(204);
   });
 });
+    // A new account must begin with its own empty course and student collections.
+    // Create records and progress through APIs to exercise real persistence.
+    // The second account sees neither list entries nor detail/update/delete access.
+    // Workspace state is keyed by account id, so progress values do not overlap.
+    // A course remains protected while a student references it, then can be
+    // deleted once the student record is removed.

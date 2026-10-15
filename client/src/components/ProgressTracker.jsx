@@ -6,6 +6,8 @@ import { useLocation } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 
 export default function ProgressTracker() {
+  // Router location tells us which page is active; auth context provides the
+  // account and persistence callback that decide whether it can be saved.
   const location = useLocation();
   const {
     isAuthenticated,
@@ -16,6 +18,8 @@ export default function ProgressTracker() {
   } = useAuth();
 
   useEffect(() => {
+    // Wait for the initial session/progress fetch, and never save public
+    // authentication pages as the user's private resume destination.
     if (
       loading ||
       !progressReady ||
@@ -30,6 +34,8 @@ export default function ProgressTracker() {
     // save is displayed by the shared workspace error message in the layout.
     saveProgress({ lastPath: location.pathname }).catch(() => {});
   }, [
+    // Every value used by the effect is listed so React rechecks it when the
+    // account, route, or saved progress changes.
     isAuthenticated,
     loading,
     location.pathname,
