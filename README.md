@@ -40,4 +40,8 @@ Server: copy `server/.env.example` to `server/.env` and set a strong `JWT_SECRET
 
 ## Production note
 
+The client includes a Vercel SPA rewrite so direct requests to React Router
+routes (for example, `/login` and `/students`) serve the application entry
+point instead of returning a hosting-platform 404.
+
 The included JSON file store is intentionally small and self-contained for the capstone's development/demo environment. It supports separate users in a single server process, but it is not a substitute for a transactional database or a distributed multi-server deployment. For production, use a managed database such as PostgreSQL and keep JWT secrets server-side. The current JWTs expire after two hours; logout removes the token from this browser, but a copied token remains valid until it expires because the API does not keep a server-side token revocation list.
