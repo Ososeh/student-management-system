@@ -155,6 +155,55 @@ describe("Student Management API", () => {
     expect(restoredProgress.body.progress).toEqual(savedProgress.body.progress);
   });
 
+  it("persists student status transitions in both directions", async () => {
+    const account = await register("Status User", "status@example.com");
+    const course = await createCourse(account.token, "STATUS101");
+    const created = await request(app)
+      .post("/api/students")
+      .set(authenticated(account.token))
+      .send({
+        name: "Status Student",
+        email: "status-student@example.com",
+        courseId: course.body.course.id,
+        status: "Active",
+        score: 80,
+      });
+
+    expect(created.status).toBe(201);
+    const studentId = created.body.student.id;
+    const inactive = await request(app)
+      .put(`/api/students/${studentId}`)
+      .set(authenticated(account.token))
+      .send({
+        name: "Status Student",
+        email: "status-student@example.com",
+        courseId: course.body.course.id,
+        status: "Inactive",
+        score: 80,
+      });
+
+    expect(inactive.status).toBe(200);
+    expect(inactive.body.student.status).toBe("Inactive");
+    const listed = await request(app)
+      .get("/api/students")
+      .set(authenticated(account.token));
+    expect(listed.body.students[0].status).toBe("Inactive");
+
+    const active = await request(app)
+      .put(`/api/students/${studentId}`)
+      .set(authenticated(account.token))
+      .send({
+        name: "Status Student",
+        email: "status-student@example.com",
+        courseId: course.body.course.id,
+        status: "Active",
+        score: 80,
+      });
+
+    expect(active.status).toBe(200);
+    expect(active.body.student.status).toBe("Active");
+  });
+
   it("isolates academic records and progress between accounts", async () => {
     // Create two independent identities and add private data to only the first.
     const first = await register("First User", "first@example.com");
